@@ -87,10 +87,8 @@ namespace PlanetGen
 		}
 
 
-		public Cubemap GenerateTex()
+		public void GenerateTex(Cubemap c)
 		{
-			Cubemap c = new Cubemap(PixelSize, TextureFormat.RFloat, false);
-
 			Color[] faceCols = new Color[PixelSize * PixelSize];
 			FillWithFace(faceCols, c, CubemapFace.PositiveX);
 			FillWithFace(faceCols, c, CubemapFace.NegativeX);
@@ -100,6 +98,11 @@ namespace PlanetGen
 			FillWithFace(faceCols, c, CubemapFace.NegativeZ);
 
 			c.Apply();
+		}
+		public Cubemap GenerateTex(TextureFormat format = TextureFormat.RFloat)
+		{
+			Cubemap c = new Cubemap(PixelSize, format, false);
+			GenerateTex(c);
 			return c;
 		}
 		private void FillWithFace(Color[] colsArray, Cubemap c, CubemapFace face)

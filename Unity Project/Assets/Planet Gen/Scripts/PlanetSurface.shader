@@ -43,9 +43,10 @@
             
             fixed4 frag (v2f i) : SV_Target
             {
-				fixed4 col = texCUBE(_Heightmap, i.localPos);
-				//col = fixed4((i.localPos * 0.5 + 0.5), 1.0);
-                return col;
+				float height = texCUBE(_Heightmap, i.localPos).r;
+				float3 gradientCol = tex2D(_ColorGradient, float2(height, 0.0)).rgb;
+
+                return fixed4(gradientCol, 1.0);
             }
             ENDCG
         }

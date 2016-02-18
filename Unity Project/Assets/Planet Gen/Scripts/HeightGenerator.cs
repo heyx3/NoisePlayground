@@ -11,10 +11,12 @@ namespace PlanetGen
 		public int NThreads = 4;
 		public int Resolution = 256;
 		public string MaterialCubemapVarName = "_Heightmap";
+		public TextureFormat HeightmapTexFormat = TextureFormat.RFloat;
 
 		public int NOctaves = 3;
 		public float InitialScale = 10.0f;
 		public float Persistence = 0.5f;
+		public float PowLevel = 1.0f;
 		public float Seed = 32.12312f;
 
 		[NonSerialized]
@@ -23,14 +25,38 @@ namespace PlanetGen
 
 		void Start()
 		{
+			//Make sure inputs are sane.
 			if (!Mathf.IsPowerOfTwo(Resolution))
 			{
 				Debug.LogError("'Resolution' field must be a power of 2!");
 				return;
 			}
+			if (!SystemInfo.SupportsTextureFormat(HeightmapTexFormat))
+			{
+				Debug.LogError("This platform doesn't support the texture format " + HeightmapTexFormat);
+				return;
+			}
 
-			GeneratedCubemap = Generate(Resolution).GenerateTex();
+
+			//Create/generate the cubemap.
+			if (GeneratedCubemap == null ||
+				GeneratedCubemap.width != Resolution ||
+				GeneratedCubemap.format != HeightmapTexFormat)
+			{
+				GeneratedCubemap = new Cubemap(Resolution, HeightmapTexFormat, false);
+			}
+			Generate(Resolution).GenerateTex(GeneratedCubemap);
+
 			GetComponent<MeshRenderer>().material.SetTexture(MaterialCubemapVarName, GeneratedCubemap);
+		}
+
+		void OnValidate()
+		{
+			if (!SystemInfo.SupportsTextureFormat(HeightmapTexFormat))
+			{
+				Debug.LogWarning("This platform doesn't support the texture format " + HeightmapTexFormat);
+				return;
+			}
 		}
 
 		
@@ -118,7 +144,7 @@ namespace PlanetGen
 					weight *= gen.Persistence;
 					scale /= gen.Persistence;
 				}
-				return total;
+				return Mathf.Pow(total, gen.PowLevel);
 			}
 
 			public override float CalculateAt(int pos)
